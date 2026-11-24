@@ -118,6 +118,26 @@ async def test_retries_after_worker_finishes_without_radio_work(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_stale_binding_cleanup_preserves_current_assignment(tmp_path):
+    manager, controllers, sensors = setup(tmp_path)
+    with patch.object(assignments, "devices", return_value=(controllers, sensors)):
+        await manager.import_entry(legacy())
+        with pytest.raises(HomeAssistantError):
+            await manager.remove_stale_binding("h10", 1, SHELLY, SHELLY)
+        with pytest.raises(HomeAssistantError):
+            await manager.remove_stale_binding("h10", 2, OTHER, SHELLY)
+        await manager.remove_stale_binding("h10", 1, OTHER, SHELLY)
+        assert manager.snapshot("h10")["circuits"][0]["applied"] == SHELLY
+
+    sensors[SHELLY].zigpy_device.zdo.Unbind_req.assert_not_awaited()
+    stale = sensors[OTHER].zigpy_device.zdo.Unbind_req
+    stale.assert_awaited_once()
+    source, endpoint, cluster, target = stale.await_args.args
+    assert (source, endpoint, cluster) == (EUI64.convert(OTHER), 3, 0x0402)
+    assert (target.ieee, target.endpoint) == (EUI64.convert(H10), 1)
+
+
+@pytest.mark.asyncio
 async def test_batch_validation_rejects_conflicts_without_saving(tmp_path):
     manager, controllers, sensors = setup(tmp_path)
     with patch.object(assignments, "devices", return_value=(controllers, sensors)):

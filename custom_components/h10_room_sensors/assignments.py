@@ -236,6 +236,38 @@ class Assignments:
         self.refresh()
         return self.snapshot(device_id)
 
+    async def remove_stale_binding(self, device_id, circuit, sensor_address, expected):
+        """Remove a source binding that conflicts with a settled assignment."""
+        async with self.lock:
+            address, controller, sensors = self.controller(device_id)
+            key = f"{address}/{circuit}"
+            row = self.rows.get(key)
+            sensor = sensors.get(sensor_address)
+            if circuit not in controller.endpoints or sensor is None:
+                raise HomeAssistantError("Heizkreis oder Raumfühler ist nicht verfügbar.")
+            if (
+                not row
+                or not row["applied"]
+                or row["applied"]["address"] != expected
+                or sensor_address == expected
+                or pending(row)
+                or key in self.active
+            ):
+                raise HomeAssistantError(
+                    "Die aktuelle Raumfühler-Zuordnung lässt keine Bereinigung zu."
+                )
+            self.active.add(key)
+        try:
+            await change_binding(
+                sensor.zigpy_device,
+                sensor.endpoints[0],
+                controller.zigpy_device,
+                circuit,
+                connect=False,
+            )
+        finally:
+            self.active.discard(key)
+
     async def temperature(self, device_id, circuit):
         _, controller, _ = self.controller(device_id)
         if circuit not in controller.endpoints:

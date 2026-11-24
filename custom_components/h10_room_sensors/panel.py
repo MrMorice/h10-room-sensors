@@ -26,6 +26,7 @@ async def register(hass):
         save_settings,
         get_temperature,
         get_bindings,
+        remove_stale_binding,
         start_coordinator_test,
         coordinator_test_status,
     ):
@@ -133,6 +134,32 @@ async def get_bindings(hass, connection, msg):
         )
     except HomeAssistantError as err:
         connection.send_error(msg["id"], "binding_table_error", str(err))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/device/remove_stale_binding",
+        vol.Required("device_id"): str,
+        vol.Required("sensor"): str,
+        vol.Required("circuit"): int,
+        vol.Required("expected"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def remove_stale_binding(hass, connection, msg):
+    try:
+        await hass.data[DOMAIN].remove_stale_binding(
+            msg["device_id"], msg["circuit"], msg["sensor"], msg["expected"]
+        )
+    except RADIO_ERRORS:
+        connection.send_error(
+            msg["id"], "no_response", "Der Raumfühler antwortet gerade nicht."
+        )
+    except HomeAssistantError as err:
+        connection.send_error(msg["id"], "binding_cleanup_error", str(err))
+    else:
+        connection.send_result(msg["id"])
 
 
 @websocket_api.websocket_command(
