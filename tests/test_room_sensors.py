@@ -109,3 +109,34 @@ async def test_batch_validation_rejects_conflicts_without_saving(tmp_path):
             await manager.save("h10", [change(2, SHELLY), change(1, OTHER, None)])
         assert not manager.snapshot("h10")["circuits"][1]["pending"]
         manager.store.async_save.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_binding_table_page_keeps_ieee_and_distinct_destination_endpoints():
+    from zigpy.zdo.types import Binding, MultiAddress
+
+    records = [
+        Binding(
+            SrcAddress=EUI64.convert(SHELLY),
+            SrcEndpoint=1,
+            ClusterId=zigbee.TEMPERATURE,
+            DstAddress=MultiAddress(addrmode=3, ieee=EUI64.convert(H10), endpoint=ep),
+        )
+        for ep in (9, 10)
+    ]
+    read = AsyncMock(
+        side_effect=[
+            (Status.SUCCESS, 12, 8, records),
+            (Status.SUCCESS, 12, 10, []),
+            (Status.NOT_SUPPORTED,),
+        ]
+    )
+    sensor = SimpleNamespace(zdo=SimpleNamespace(Mgmt_Bind_req=read))
+    page = await zigbee.binding_page(sensor, 8)
+    assert page["next_index"] == 10
+    assert [r["target_endpoint"] for r in page["bindings"]] == [9, 10]
+    assert all(r["target_ieee"] == H10 for r in page["bindings"])
+    with pytest.raises(HomeAssistantError):
+        await zigbee.binding_page(sensor, 10)
+    with pytest.raises(HomeAssistantError):
+        await zigbee.binding_page(sensor, 0)

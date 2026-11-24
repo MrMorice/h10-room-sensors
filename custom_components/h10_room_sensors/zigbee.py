@@ -93,3 +93,50 @@ async def room_temperature(h10, circuit):
     if value is None or value == -32768:
         return None
     return value / 100
+
+
+async def binding_page(sensor, index):
+    """Read one page of the binding table without changing the device."""
+    status, *payload = await sensor.zdo.Mgmt_Bind_req(index)
+    if status != zdo.Status.SUCCESS:
+        raise HomeAssistantError(
+            f"Der Fühler konnte die Binding-Tabelle nicht lesen ({status!s})."
+        )
+    if len(payload) != 3:
+        raise HomeAssistantError(
+            "Der Fühler hat eine unvollständige Binding-Tabelle gemeldet."
+        )
+
+    total, start, bindings = payload
+    if (
+        start != index
+        or start + len(bindings) > total
+        or (start < total and not bindings)
+    ):
+        raise HomeAssistantError(
+            "Der Fühler hat einen ungültigen Ausschnitt der Binding-Tabelle gemeldet."
+        )
+
+    records = []
+    for binding in bindings:
+        target = binding.DstAddress
+        record = {
+            "source_ieee": str(binding.SrcAddress),
+            "source_endpoint": int(binding.SrcEndpoint),
+            "cluster": int(binding.ClusterId),
+            "address_mode": int(target.addrmode),
+        }
+        if target.addrmode == 3:
+            record.update(
+                target_ieee=str(target.ieee), target_endpoint=int(target.endpoint)
+            )
+        elif target.addrmode == 1:
+            record["group"] = int(target.nwk)
+        records.append(record)
+    following = start + len(records)
+    return {
+        "total": int(total),
+        "start_index": int(start),
+        "next_index": following if following < total else None,
+        "bindings": records,
+    }

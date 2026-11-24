@@ -28,6 +28,8 @@ sensor must already be paired with ZHA.
    press on a sleeping Shelly BLU H&T ZB can speed up the next attempt. Check the
    measured temperature at the H10 in the dialog.
 
+Use **Check Zigbee bindings** in the dialog to read the selected sensor’s actual binding table. The check lists stored H10 destinations and whether the sensor also reports to the coordinator. Wake a battery-powered sensor while the table is being read.
+
 When replacing a sensor, the integration removes the old binding before
 applying the new one. The H10 may use its configured backup behavior until
 the new sensor delivers a report.
