@@ -264,7 +264,7 @@ class Assignments:
         ):
             return
         self.worker = self.hass.async_create_background_task(
-            self.apply(), "H10 room sensor bindings"
+            self.apply(), "H10 room sensor bindings", eager_start=False
         )
 
     async def apply(self):

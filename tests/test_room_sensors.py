@@ -100,6 +100,24 @@ async def test_replacement_unbinds_before_retrying_sleeping_sensor(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_retries_after_worker_finishes_without_radio_work(tmp_path):
+    manager, controllers, sensors = setup(tmp_path)
+    with patch.object(assignments, "devices", return_value=(controllers, sensors)):
+        await manager.save("h10", [change(1, SHELLY)])
+
+    manager.entries.add("existing")
+    with patch.object(assignments, "devices", return_value=({}, sensors)):
+        manager.kick()
+        await manager.worker
+        assert manager.worker is None
+
+    with patch.object(assignments, "devices", return_value=(controllers, sensors)):
+        manager.kick()
+        await manager.worker
+        assert not manager.snapshot("h10")["circuits"][0]["pending"]
+
+
+@pytest.mark.asyncio
 async def test_batch_validation_rejects_conflicts_without_saving(tmp_path):
     manager, controllers, sensors = setup(tmp_path)
     with patch.object(assignments, "devices", return_value=(controllers, sensors)):
