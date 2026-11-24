@@ -1,0 +1,17 @@
+{
+  "codeowners": [
+    "@MrMorice"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "zha"
+  ],
+  "documentation": "https://github.com/MrMorice/h10-room-sensors#readme",
+  "domain": "h10_room_sensors",
+  "integration_type": "helper",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/MrMorice/h10-room-sensors/issues",
+  "name": "H10 Room Sensors",
+  "requirements": [],
+  "version": "0.1.0"
+}
