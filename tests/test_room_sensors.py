@@ -140,3 +140,68 @@ async def test_binding_table_page_keeps_ieee_and_distinct_destination_endpoints(
         await zigbee.binding_page(sensor, 10)
     with pytest.raises(HomeAssistantError):
         await zigbee.binding_page(sensor, 0)
+
+
+@pytest.mark.asyncio
+async def test_coordinator_test_restores_exact_binding_after_fresh_measurement(
+    tmp_path,
+):
+    from custom_components.h10_room_sensors import coordinator_test
+
+    manager, _, sensors = setup(tmp_path)
+    sensor = sensors[SHELLY]
+    device = sensor.zigpy_device
+    coordinator_ieee = EUI64.convert("00:11:22:33:44:55:66:00")
+    coordinator = SimpleNamespace(ieee=coordinator_ieee)
+    device.application = SimpleNamespace(
+        state=SimpleNamespace(node_info=SimpleNamespace(ieee=coordinator_ieee)),
+        get_device=lambda **kw: coordinator,
+    )
+    diagnostic = coordinator_test.CoordinatorTest(manager.hass)
+    diagnostic.store = SimpleNamespace(async_save=AsyncMock(), async_remove=AsyncMock())
+    manager.temperature = AsyncMock(side_effect=[None, 20, 21.5])
+    action_log = []
+
+    async def action(source, endpoint, target, target_endpoint, *, connect):
+        assert (source, endpoint, target, target_endpoint) == (
+            device,
+            3,
+            coordinator,
+            1,
+        )
+        diagnostic.store.async_save.assert_awaited_once()
+        action_log.append(connect)
+
+    table = {
+        "next_index": None,
+        "bindings": [
+            {
+                "cluster": zigbee.TEMPERATURE,
+                "source_ieee": SHELLY,
+                "source_endpoint": 3,
+                "target_ieee": str(coordinator_ieee),
+                "target_endpoint": 1,
+            },
+            {
+                "cluster": zigbee.TEMPERATURE,
+                "source_ieee": SHELLY,
+                "source_endpoint": 3,
+                "target_ieee": H10,
+                "target_endpoint": 10,
+            },
+        ],
+    }
+    with (
+        patch.object(coordinator_test, "devices", return_value=({}, sensors)),
+        patch.object(
+            coordinator_test, "binding_page", new=AsyncMock(return_value=table)
+        ),
+        patch.object(coordinator_test, "change_binding", side_effect=action),
+    ):
+        await diagnostic.run(manager, "h10", sensor, 10, 1)
+
+    assert action_log == [False, True]
+    diagnostic.store.async_remove.assert_awaited_once()
+    assert diagnostic.result["phase"] == "complete"
+    assert diagnostic.result["restored"]
+    assert diagnostic.result["measured_temperature"] == 21.5

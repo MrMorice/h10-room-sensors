@@ -20,8 +20,15 @@ async def register(hass):
             )
         ]
     )
-    frontend.add_extra_js_url(hass, f"{ASSET}?v=0.2.1")
-    for handler in (get_settings, save_settings, get_temperature, get_bindings):
+    frontend.add_extra_js_url(hass, f"{ASSET}?v=0.2.2")
+    for handler in (
+        get_settings,
+        save_settings,
+        get_temperature,
+        get_bindings,
+        start_coordinator_test,
+        coordinator_test_status,
+    ):
         websocket_api.async_register_command(hass, handler)
 
 
@@ -126,3 +133,32 @@ async def get_bindings(hass, connection, msg):
         )
     except HomeAssistantError as err:
         connection.send_error(msg["id"], "binding_table_error", str(err))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/device/coordinator_test",
+        vol.Required("device_id"): str,
+        vol.Required("sensor"): str,
+        vol.Required("circuit"): int,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def start_coordinator_test(hass, connection, msg):
+    test = hass.data[DOMAIN].coordinator_test
+    try:
+        result = test.start(msg["device_id"], msg["sensor"], msg["circuit"])
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "test_error", str(exc))
+    else:
+        connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): f"{DOMAIN}/device/coordinator_test/status"}
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def coordinator_test_status(hass, connection, msg):
+    connection.send_result(msg["id"], hass.data[DOMAIN].coordinator_test.result)
