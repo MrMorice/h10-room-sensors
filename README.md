@@ -15,19 +15,22 @@ directory's `custom_components` folder and restart Home Assistant. The
 integration uses the ZHA APIs from Home Assistant 2026.10. The H10 and room
 sensor must already be paired with ZHA.
 
-## Add a heating circuit
+## Assign room sensors on the H10
 
-1. Open **Settings → Devices & services → Add integration → H10 Room Sensors**.
-2. Select the H10, heating circuit and room sensor. Wake the sensor immediately
-   before confirming. On a Shelly BLU H&T ZB, press the button once.
-3. Open the new entry's **Configure → Check connection**. Wake the sensor again.
-   The dialog checks the exact binding and reads the H10's current temperature.
-   Warm the sensor slightly and repeat the check to confirm the H10 follows it.
+1. On a first installation, add **H10 Room Sensors** under **Settings → Devices
+   & services → Add integration**. An update from 0.1 automatically imports
+   existing assignments.
+2. Open the **ubisys H10** device page. Click the configuration cog in
+   **Device info** to open the room-sensor dialog.
+3. Pick a sensor for each thermostat circuit and save. You can choose the same
+   sensor for several circuits. Select **No room sensor** to disconnect.
+4. Home Assistant retries pending changes in the background. A short button
+   press on a sleeping Shelly BLU H&T ZB can speed up the next attempt. Check the
+   measured temperature at the H10 in the dialog.
 
-There is one entry per circuit. In **Configure**, you can check, restore or
-disconnect the assignment. Before replacing a sensor, disconnect it there with
-the old sensor awake, delete the entry, then add the circuit with the new sensor.
-Deleting the Home Assistant entry alone leaves the radio binding intact.
+When replacing a sensor, the integration removes the old binding before
+applying the new one. The H10 may use its configured backup behavior until
+the new sensor delivers a report.
 
 If you previously assigned another sensor to that circuit manually, remove the
 old binding before adding the new one. The H10 can consume reports from

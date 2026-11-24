@@ -22,6 +22,7 @@ class Device:
     name: str
     zigpy_device: object
     endpoints: tuple[int, ...]
+    registry_id: str | None = None
 
 
 def devices(hass):
@@ -51,7 +52,7 @@ def devices(hass):
                 and TEMPERATURE in ep.out_clusters
             )
             if endpoints:
-                controllers[address] = Device(name, device, endpoints)
+                controllers[address] = Device(name, device, endpoints, entry.id)
             continue
 
         endpoints = tuple(
@@ -61,7 +62,7 @@ def devices(hass):
         )
         # This flow is for room sensors with one unambiguous reporting endpoint.
         if len(endpoints) == 1:
-            sensors[address] = Device(name, device, endpoints)
+            sensors[address] = Device(name, device, endpoints, entry.id)
 
     return controllers, sensors
 
@@ -82,32 +83,6 @@ async def change_binding(sensor, endpoint, h10, circuit, *, connect):
     )
     if status != zdo.Status.SUCCESS and (connect or status != zdo.Status.NO_ENTRY):
         raise HomeAssistantError(f"Zigbee returned {status!s}")
-
-
-async def has_binding(sensor, endpoint, h10, circuit):
-    """Look up the exact destination in the sensor's paginated binding table."""
-    index = 0
-    while index < 256:
-        status, *page = await sensor.zdo.Mgmt_Bind_req(index)
-        if status != zdo.Status.SUCCESS:
-            raise HomeAssistantError(f"Binding table returned {status!s}")
-        total, start, entries = page
-        if any(
-            item.SrcAddress == sensor.ieee
-            and item.SrcEndpoint == endpoint
-            and item.ClusterId == TEMPERATURE
-            and item.DstAddress.addrmode == 3
-            and item.DstAddress.ieee == h10.ieee
-            and item.DstAddress.endpoint == circuit
-            for item in entries
-        ):
-            return True
-        if start + len(entries) >= total:
-            return False
-        if start != index or not entries:
-            raise HomeAssistantError("Incomplete binding table")
-        index += len(entries)
-    raise HomeAssistantError("Invalid binding table size")
 
 
 async def room_temperature(h10, circuit):

@@ -1,70 +1,14 @@
 {
-  "title": "H10 Room Sensors",
+  "title": "Enable H10 Room Sensors",
   "config": {
     "step": {
       "user": {
-        "title": "Add an H10",
-        "description": "Choose the ubisys H10 that will receive the room temperature.",
-        "data": {
-          "h10": "Heating controller"
-        }
-      },
-      "assign": {
-        "title": "Connect a room sensor",
-        "description": "Choose a heating circuit on **{h10}** and the room sensor it should use. If the sensor runs on batteries, wake it immediately before you submit.",
-        "data": {
-          "circuit": "Heating circuit",
-          "sensor": "Room sensor"
-        }
+        "title": "Enable H10 Room Sensors",
+        "description": "Open your H10 under Devices & services. The cog in Device info opens room sensor assignments."
       }
     },
-    "error": {
-      "device_missing": "The selected device or heating circuit is no longer available.",
-      "no_response": "The device did not respond. Wake the room sensor and try again.",
-      "binding_rejected": "The device rejected the Zigbee request. Check that both devices are still paired and try again."
-    },
     "abort": {
-      "no_h10": "No compatible ubisys H10 was found in ZHA.",
-      "no_sensors": "No compatible Zigbee room sensor was found in ZHA.",
-      "no_free_circuits": "All available circuits on this H10 already have an entry. Manage the existing entries under Devices & services."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Manage room sensor",
-        "description": "**{assignment}**",
-        "menu_options": {
-          "check": "Check connection",
-          "restore": "Restore connection",
-          "detach": "Disconnect room sensor"
-        }
-      },
-      "check": {
-        "title": "Check connection",
-        "description": "**{assignment}**\n\nWake the room sensor before you continue. Home Assistant will read the sensor’s binding table and the temperature currently used by the H10."
-      },
-      "check_result": {
-        "title": "Connection check",
-        "description": "**{assignment}**\n\nRoom temperature at the H10: **{temperature}**.\n\nWarm the room sensor slightly and check again to see whether the H10 follows the change."
-      },
-      "restore": {
-        "title": "Restore connection",
-        "description": "**{assignment}**\n\nWake the room sensor before you continue. Home Assistant will set up the direct temperature binding again."
-      },
-      "detach": {
-        "title": "Disconnect room sensor",
-        "description": "**{assignment}**\n\nWake the room sensor before you continue. The H10 will stop receiving temperature reports from this sensor. To choose a different sensor, remove this entry after disconnecting and add the circuit again."
-      }
-    },
-    "error": {
-      "no_response": "The device did not respond. Wake the room sensor and try again.",
-      "binding_rejected": "The device rejected the Zigbee request. Check that both devices are still paired and try again.",
-      "binding_missing": "The sensor’s binding table has no entry for this heating circuit. Use Restore connection to set it again."
-    },
-    "abort": {
-      "device_missing": "The selected device or heating circuit is no longer available.",
-      "check_complete": "Connection check complete."
+      "already_configured": "H10 Room Sensors is already set up. Open Device info for your H10."
     }
   }
 }

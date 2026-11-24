@@ -1,70 +1,14 @@
 {
-  "title": "H10 Raumfühler",
+  "title": "H10 Raumfühler aktivieren",
   "config": {
     "step": {
       "user": {
-        "title": "H10 hinzufügen",
-        "description": "Wähle die ubisys-Heizungssteuerung aus, die die Raumtemperatur empfangen soll.",
-        "data": {
-          "h10": "Heizungssteuerung"
-        }
-      },
-      "assign": {
-        "title": "Raumfühler verbinden",
-        "description": "Wähle einen Heizkreis an **{h10}** und den passenden Raumfühler. Wecke einen batteriebetriebenen Fühler unmittelbar vor dem Bestätigen.",
-        "data": {
-          "circuit": "Heizkreis",
-          "sensor": "Raumfühler"
-        }
+        "title": "H10 Raumfühler aktivieren",
+        "description": "Öffne anschließend deinen H10 unter Geräte & Dienste. Das Zahnrad in den Geräteinformationen öffnet die Zuordnung der Raumfühler."
       }
     },
-    "error": {
-      "device_missing": "Das ausgewählte Gerät oder der Heizkreis ist nicht mehr verfügbar.",
-      "no_response": "Das Gerät hat nicht geantwortet. Wecke den Raumfühler und versuche es erneut.",
-      "binding_rejected": "Das Gerät hat die Zigbee-Anfrage abgelehnt. Prüfe, ob beide Geräte noch angelernt sind, und versuche es erneut."
-    },
     "abort": {
-      "no_h10": "In ZHA wurde kein kompatibler ubisys H10 gefunden.",
-      "no_sensors": "In ZHA wurde kein kompatibler Zigbee-Raumfühler gefunden.",
-      "no_free_circuits": "Für alle verfügbaren Heizkreise dieses H10 gibt es bereits einen Eintrag. Du kannst sie unter „Geräte & Dienste“ verwalten."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Raumfühler verwalten",
-        "description": "**{assignment}**",
-        "menu_options": {
-          "check": "Verbindung prüfen",
-          "restore": "Verbindung wiederherstellen",
-          "detach": "Raumfühler trennen"
-        }
-      },
-      "check": {
-        "title": "Verbindung prüfen",
-        "description": "**{assignment}**\n\nWecke den Raumfühler, bevor du fortfährst. Home Assistant liest die Binding-Tabelle des Fühlers und die aktuelle Raumtemperatur am H10 aus."
-      },
-      "check_result": {
-        "title": "Verbindungsprüfung",
-        "description": "**{assignment}**\n\nRaumtemperatur am H10: **{temperature}**.\n\nWärme den Raumfühler leicht an und prüfe erneut, ob der H10 die Änderung übernimmt."
-      },
-      "restore": {
-        "title": "Verbindung wiederherstellen",
-        "description": "**{assignment}**\n\nWecke den Raumfühler, bevor du fortfährst. Home Assistant setzt das direkte Temperatur-Binding erneut."
-      },
-      "detach": {
-        "title": "Raumfühler trennen",
-        "description": "**{assignment}**\n\nWecke den Raumfühler, bevor du fortfährst. Der H10 erhält dann keine Temperaturmeldungen mehr von diesem Fühler. Wenn du einen anderen Fühler auswählen möchtest, entferne nach dem Trennen diesen Eintrag und füge den Heizkreis erneut hinzu."
-      }
-    },
-    "error": {
-      "no_response": "Das Gerät hat nicht geantwortet. Wecke den Raumfühler und versuche es erneut.",
-      "binding_rejected": "Das Gerät hat die Zigbee-Anfrage abgelehnt. Prüfe, ob beide Geräte noch angelernt sind, und versuche es erneut.",
-      "binding_missing": "Für diesen Heizkreis fehlt der Eintrag in der Binding-Tabelle des Fühlers. Mit „Verbindung wiederherstellen“ kannst du ihn neu setzen."
-    },
-    "abort": {
-      "device_missing": "Das ausgewählte Gerät oder der Heizkreis ist nicht mehr verfügbar.",
-      "check_complete": "Verbindungsprüfung abgeschlossen."
+      "already_configured": "H10 Raumfühler ist bereits eingerichtet. Öffne die Geräteinformationen deines H10."
     }
   }
 }
